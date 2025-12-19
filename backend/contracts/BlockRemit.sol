@@ -5,26 +5,26 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-/**
- * @title BlockRemit
- * @dev A blockchain-based money transfer platform similar to Wise
- * Enables fast, low-cost international transfers using stablecoins
- */
-
 contract BlockRemit is Ownable, ReentrancyGuard {
-    
+     // Admin and treasury
+    address public treasury;
+
+    constructor(address _treasury) Ownable(msg.sender) {
+        require(_treasury != address(0), "Treasury address cannot be zero");
+        treasury = _treasury;
+    }
+
     // Stablecoin addresses (USDC, USDT, DAI, etc.)
     mapping(string => address) public supportedTokens;
-    
-    // Exchange rates (stored as rates * 10^18 for precision)
+
+     // Exchange rates (stored as rates * 10^18 for precision)
     mapping(string => mapping(string => uint256)) public exchangeRates;
-    
-    // User accounts and balances
+     // User accounts and balances
     mapping(address => mapping(string => uint256)) public userBalances;
     mapping(address => bool) public registeredUsers;
     mapping(address => string) public userCountry;
-    
-    // Transfer history
+
+     // Transfer history
     struct Transfer {
         uint256 id;
         address sender;
@@ -37,17 +37,14 @@ contract BlockRemit is Ownable, ReentrancyGuard {
         uint256 timestamp;
         string status; // pending, completed, failed
     }
-    
+
     mapping(uint256 => Transfer) public transfers;
     uint256 public transferCount;
-    
-    // Fee structure (in basis points, e.g., 50 = 0.5%)
+
+     // Fee structure (in basis points, e.g., 50 = 0.5%)
     uint256 public transferFeePercentage = 50; // 0.5%
     uint256 public minTransferAmount = 1e18; // 1 USD equivalent
-    
-    // Admin and treasury
-    address public treasury;
-    
+
     // Events
     event UserRegistered(address indexed user, string country);
     event TokenAdded(string symbol, address tokenAddress);
@@ -57,11 +54,7 @@ contract BlockRemit is Ownable, ReentrancyGuard {
     event DepositReceived(address indexed user, string currency, uint256 amount);
     event WithdrawalProcessed(address indexed user, string currency, uint256 amount);
     
-    constructor(address _treasury) {
-        treasury = _treasury;
-    }
-    
-    // ==================== User Management ====================
+     // ==================== User Management ====================
     
     /**
      * @dev Register a user with their country
@@ -72,7 +65,7 @@ contract BlockRemit is Ownable, ReentrancyGuard {
         userCountry[msg.sender] = _country;
         emit UserRegistered(msg.sender, _country);
     }
-    
+
     /**
      * @dev Deposit funds into the platform
      */
@@ -87,7 +80,7 @@ contract BlockRemit is Ownable, ReentrancyGuard {
         userBalances[msg.sender][_currency] += _amount;
         emit DepositReceived(msg.sender, _currency, _amount);
     }
-    
+
     /**
      * @dev Withdraw funds from the platform
      */
@@ -101,8 +94,9 @@ contract BlockRemit is Ownable, ReentrancyGuard {
         require(IERC20(tokenAddress).transfer(msg.sender, _amount), "Transfer failed");
         emit WithdrawalProcessed(msg.sender, _currency, _amount);
     }
-    
-    // ==================== Transfer Operations ====================
+
+
+ // ==================== Transfer Operations ====================
     
     /**
      * @dev Initiate a cross-currency transfer
@@ -163,8 +157,8 @@ contract BlockRemit is Ownable, ReentrancyGuard {
         
         return transferId;
     }
-    
-    // ==================== Admin Functions ====================
+
+     // ==================== Admin Functions ====================
     
     /**
      * @dev Add a supported token
@@ -206,8 +200,8 @@ contract BlockRemit is Ownable, ReentrancyGuard {
         require(_newTreasury != address(0), "Invalid address");
         treasury = _newTreasury;
     }
-    
-    // ==================== View Functions ====================
+
+     // ==================== View Functions ====================
     
     /**
      * @dev Get user balance in a specific currency
@@ -238,4 +232,6 @@ contract BlockRemit is Ownable, ReentrancyGuard {
         uint256 amountAfterFee = _amount - fee;
         recipientAmount = (amountAfterFee * rate) / 1e18;
     }
+
+    
 }
