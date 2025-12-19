@@ -1,0 +1,5 @@
+VITE_API_URL=http://localhost:5000/api
+VITE_CONTRACT_ADDRESS=0x...
+VITE_NETWORK_NAME=Polygon
+VITE_RPC_URL=https://polygon-rpc.com/
+VITE_CHAIN_ID=137
